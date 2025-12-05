@@ -2,8 +2,7 @@
   "name": "api",
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot src/app.ts",
-    "deploy": "bunx vercel deploy"
+    "dev": "bun run --hot src/app.ts"
   },
   "dependencies": {
     "hono": "^4.10.7",
