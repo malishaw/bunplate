@@ -9,7 +9,7 @@ import type { Database } from "core/database";
 import { setupAuth } from "core/auth/setup";
 import { env } from "core/env";
 
-import { APIBindings } from "./types";
+import type { APIBindings } from "./types";
 import { setupAPI } from "./lib/setup-api";
 import { registerRoutes } from "./registry";
 import configureOpenAPI from "./lib/open-api-config";
@@ -18,8 +18,6 @@ import configureOpenAPI from "./lib/open-api-config";
 let db: Database;
 
 try {
-  console.log(env);
-
   // Initialize database connection at module load
   db = initDatabase(env.DATABASE_URL);
 

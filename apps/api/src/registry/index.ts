@@ -4,9 +4,10 @@ import { OpenAPI } from "@/types";
 import { BASE_PATH } from "@/lib/constants";
 
 import index from "../routes/index.route";
+import tasks from "./tasks.registry";
 
 export function registerRoutes(app: OpenAPI) {
-  return app.route("/", index);
+  return app.route("/", index).route("/tasks", tasks);
 }
 
 // Standalone router instance and type export for RPC

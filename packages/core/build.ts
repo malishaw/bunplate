@@ -4,8 +4,10 @@ const entrypoints = [
   "./src/auth/setup.ts",
   "./src/database/index.ts",
   "./src/database/schema/index.ts",
+  "./src/database/queries/index.ts",
   "./src/rpc/index.ts",
-  "./src/env/index.ts"
+  "./src/env/index.ts",
+  "./src/zod/index.ts"
 ];
 
 const result = await Bun.build({
@@ -26,7 +28,8 @@ const result = await Bun.build({
     "drizzle-orm/neon-http",
     "@neondatabase/serverless",
     "hono/client",
-    "api/types"
+    "api/types",
+    "zod"
   ]
 });
 

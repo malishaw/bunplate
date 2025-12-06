@@ -20,6 +20,10 @@
       "import": "./dist/database/schema/index.js",
       "types": "./src/database/schema/index.ts"
     },
+    "./database/queries": {
+      "import": "./dist/database/queries/index.js",
+      "types": "./src/database/queries/index.ts"
+    },
     "./rpc": {
       "import": "./dist/rpc/index.js",
       "types": "./src/rpc/index.ts"
@@ -27,6 +31,10 @@
     "./env": {
       "import": "./dist/env/index.js",
       "types": "./src/env/index.ts"
+    },
+    "./zod": {
+      "import": "./dist/zod/index.js",
+      "types": "./src/zod/index.ts"
     }
   },
   "scripts": {
