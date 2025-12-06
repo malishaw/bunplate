@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "bun run --hot src/app.ts",
-    "build": "bun build index.ts --target=node --outdir=dist --minify"
+    "build": "bun build index.ts --target=node --outdir=dist --minify --sourcemap=external"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.1.5",
