@@ -27,7 +27,13 @@ async function build() {
       minify: false,
       sourcemap: "external",
       external: [
-        // Only external runtime dependencies
+        // Keep Hono as external so Vercel can detect it
+        "hono",
+        "hono/*",
+        "@hono/zod-openapi",
+        "@scalar/hono-api-reference",
+        "stoker",
+        // Runtime dependencies
         "@neondatabase/serverless",
         "ws"
       ],
@@ -53,6 +59,10 @@ async function build() {
     const deployPackageJson = {
       type: "module",
       dependencies: {
+        hono: "^4.10.7",
+        "@hono/zod-openapi": "^1.1.5",
+        "@scalar/hono-api-reference": "^0.9.26",
+        stoker: "^2.0.1",
         "@neondatabase/serverless": "^1.0.2",
         ws: "^8.18.3"
       }
