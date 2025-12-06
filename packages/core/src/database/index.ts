@@ -1,15 +1,11 @@
-import { neon, neonConfig, Pool } from "@neondatabase/serverless";
-import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
-import ws from "ws";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { drizzle, NeonHttpDatabase } from "drizzle-orm/neon-http";
 
 import * as schema from "./schema";
 
-// Configure WebSocket for Node.jS / Vercel Environments
-neonConfig.webSocketConstructor = ws;
-
 // Initialize and export the database instance
-let db: NeonDatabase<typeof schema> & {
-  $client: Pool;
+let db: NeonHttpDatabase<typeof schema> & {
+  $client: NeonQueryFunction<false, false>;
 };
 
 export type Database = typeof db;
@@ -24,10 +20,9 @@ export function initDatabase(databaseUrl: string) {
     return db;
   }
 
-  // Use connection pooling
-  const pool = new Pool({ connectionString: databaseUrl });
-
-  db = drizzle(pool, { schema });
+  // If no db instance, prepare and return
+  const sql = neon(databaseUrl);
+  db = drizzle(sql, { schema });
 
   return db;
 }
