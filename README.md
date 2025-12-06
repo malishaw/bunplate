@@ -18,8 +18,4 @@ This project was created using `bun init` in bun v1.2.18. [Bun](https://bun.sh) 
 
 Developer Notes:
 [x] Initialized Bun Project
-
-Additional Note:
-
-- Initiate a Checkout command
-  git reset --hard 7658cf63a9089aae4c2a60a881fbca9809712534
+[x] Initialized Dev Branch
