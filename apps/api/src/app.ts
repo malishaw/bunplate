@@ -2,6 +2,7 @@ let app: OpenAPIHono<APIBindings>;
 
 // Import at module-level for faster cold starts
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { Hono } from "hono";
 
 import { initDatabase } from "core/database";
 import type { Database } from "core/database";
@@ -30,6 +31,17 @@ try {
   configureOpenAPI(app);
 } catch (error) {
   console.error("Failed to initialize database/auth:", error);
+
+  // Fallback app that returns 500 for all requests
+  const fallback = new Hono<APIBindings>();
+
+  fallback.all("*", (c) => {
+    return c.json(
+      { error: "Internal Server Error: Initialization Failed" },
+      500
+    );
+  });
+
   throw error;
 }
 
