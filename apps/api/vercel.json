@@ -3,18 +3,5 @@
   "buildCommand": "bun run build:vercel",
   "outputDirectory": "dist",
   "installCommand": "bun install && bun run --filter core build",
-  "bunVersion": "1.x",
-  "functions": {
-    "dist/index.js": {
-      "runtime": "@vercel/node@3.2.17",
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/dist/index.js"
-    }
-  ]
+  "bunVersion": "1.x"
 }
