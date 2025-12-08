@@ -6,7 +6,7 @@ import packageJson from "../../package.json";
 import { BASE_PATH } from "./constants";
 
 export default function configureOpenAPI(app: OpenAPI): void {
-  app.doc("/doc", {
+  app.doc31("/doc", {
     openapi: "3.0.0",
     info: {
       version: packageJson.version,
@@ -16,11 +16,9 @@ export default function configureOpenAPI(app: OpenAPI): void {
 
   app.get(
     "/reference",
-    Scalar(() => {
-      return {
-        url: `${BASE_PATH}/doc`,
-        theme: "default"
-      };
+    Scalar({
+      url: `${BASE_PATH}/doc`,
+      theme: "default"
     })
   );
 }

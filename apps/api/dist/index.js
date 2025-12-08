@@ -53229,6 +53229,27 @@ function getAuth() {
   return authInstance;
 }
 
+// ../../packages/core/dist/env/index.js
+init_zod();
+var envSchema = exports_external.object({
+  PORT: exports_external.string().optional(),
+  DATABASE_URL: exports_external.url().describe("PostgreSQL connection string"),
+  BETTER_AUTH_SECRET: exports_external.string().optional(),
+  BETTER_AUTH_URL: exports_external.string().optional(),
+  CLIENT_URL: exports_external.url().describe("Client application URL").optional(),
+  API_URL: exports_external.url().default("http://localhost:4000").describe("API base URL for RPC client").optional()
+});
+function validateEnv() {
+  const result = envSchema.safeParse(process.env);
+  if (!result.success) {
+    console.error("❌ Invalid environment variables:");
+    console.error(exports_external.treeifyError(result.error));
+    throw new Error("Invalid environment variables");
+  }
+  return result.data;
+}
+var env3 = validateEnv();
+
 // src/lib/setup-api.ts
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
@@ -53253,7 +53274,7 @@ function setupAPI() {
   const api2 = createAPIRouter().basePath(BASE_PATH);
   api2.use("*", logger2());
   api2.use("*", cors({
-    origin: [process.env.CLIENT_APP_URL],
+    origin: [env3.CLIENT_URL],
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "PUT", "DELETE", "PATCH", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
@@ -53325,11 +53346,442 @@ var router2 = createAPIRouter().openapi(createRoute({
 });
 var index_route_default = router2;
 
+// src/handlers/tasks.handlers.ts
+import * as HttpStatusCodes2 from "stoker/http-status-codes";
+import * as HttpStatusPhrases2 from "stoker/http-status-phrases";
+
+// ../../packages/core/dist/database/queries/index.js
+init_zod();
+var __defProp5 = Object.defineProperty;
+var __export4 = (target, all) => {
+  for (var name in all)
+    __defProp5(target, name, {
+      get: all[name],
+      enumerable: true,
+      configurable: true,
+      set: (newValue) => all[name] = () => newValue
+    });
+};
+var exports_schema2 = {};
+__export4(exports_schema2, {
+  verifications: () => verifications3,
+  users: () => users3,
+  userRelations: () => userRelations3,
+  tasks: () => tasks2,
+  sessions: () => sessions3,
+  sessionRelations: () => sessionRelations3,
+  accounts: () => accounts3,
+  accountRelations: () => accountRelations3
+});
+var timestamps2 = {
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => sql`CURRENT_TIMESTAMP`)
+};
+var tasks2 = pgTable("tasks", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  done: boolean("done").notNull().default(false),
+  ...timestamps2
+});
+var exports_auth_schema3 = {};
+__export4(exports_auth_schema3, {
+  verifications: () => verifications3,
+  users: () => users3,
+  userRelations: () => userRelations3,
+  sessions: () => sessions3,
+  sessionRelations: () => sessionRelations3,
+  accounts: () => accounts3,
+  accountRelations: () => accountRelations3
+});
+var users3 = pgTable("users", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => /* @__PURE__ */ new Date).notNull(),
+  role: text("role"),
+  banned: boolean("banned").default(false),
+  banReason: text("ban_reason"),
+  banExpires: timestamp("ban_expires")
+});
+var sessions3 = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expires_at").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").$onUpdate(() => /* @__PURE__ */ new Date).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id").notNull().references(() => users3.id, { onDelete: "cascade" }),
+  impersonatedBy: text("impersonated_by")
+}, (table) => [index("sessions_userId_idx").on(table.userId)]);
+var accounts3 = pgTable("accounts", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id").notNull().references(() => users3.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").$onUpdate(() => /* @__PURE__ */ new Date).notNull()
+}, (table) => [index("accounts_userId_idx").on(table.userId)]);
+var verifications3 = pgTable("verifications", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => /* @__PURE__ */ new Date).notNull()
+}, (table) => [index("verifications_identifier_idx").on(table.identifier)]);
+var userRelations3 = relations(users3, ({ many }) => ({
+  sessions: many(sessions3),
+  accounts: many(accounts3)
+}));
+var sessionRelations3 = relations(sessions3, ({ one }) => ({
+  users: one(users3, {
+    fields: [sessions3.userId],
+    references: [users3.id]
+  })
+}));
+var accountRelations3 = relations(accounts3, ({ one }) => ({
+  users: one(users3, {
+    fields: [accounts3.userId],
+    references: [users3.id]
+  })
+}));
+var errorMessageSchema = exports_external.object({
+  message: exports_external.string()
+});
+var stringIdParamSchema = exports_external.object({
+  id: exports_external.string()
+});
+var queryParamsSchema = exports_external.object({
+  page: exports_external.string().optional(),
+  limit: exports_external.string().optional(),
+  sort: exports_external.enum(["asc", "desc"]).optional().default("desc"),
+  search: exports_external.string().optional()
+});
+function prepareQueryParams(params) {
+  const page = Math.max(1, parseInt(params.page || "1"));
+  const limit = Math.max(1, Math.min(100, parseInt(params.limit || "10")));
+  const offset = (page - 1) * limit;
+  const search = params.search?.trim() || undefined;
+  const sort = params.sort;
+  return { page, limit, offset, search, sort };
+}
+async function getAllTasks(db3, params) {
+  const { limit, offset, search, sort, page } = prepareQueryParams(params);
+  const getAllQuery = await db3.query.tasks.findMany({
+    limit,
+    offset,
+    where: (fields, { ilike: ilike2, and: and2 }) => {
+      const conditions = [];
+      if (search) {
+        conditions.push(ilike2(fields.name, `%${search}%`));
+      }
+      return conditions.length > 0 ? and2(...conditions) : undefined;
+    },
+    orderBy: (fields) => {
+      if (sort === "asc") {
+        return fields.createdAt;
+      }
+      return desc(fields.createdAt);
+    }
+  });
+  const totalCountQuery = db3.select({ count: sql`count(*)` }).from(tasks2).where(search ? and(ilike(tasks2.name, `%${search}%`)) : undefined);
+  const [allEntries, totalCount] = await Promise.all([
+    getAllQuery,
+    totalCountQuery
+  ]);
+  const totalEntries = totalCount[0]?.count || 0;
+  const totalPages = Math.ceil(totalEntries / limit);
+  return {
+    data: allEntries,
+    meta: {
+      currentPage: page,
+      limit,
+      totalCount: totalEntries,
+      totalPages
+    }
+  };
+}
+async function getTaskByID(db3, id) {
+  const task = await db3.query.tasks.findFirst({
+    where: (fields) => eq(fields.id, id)
+  });
+  if (!task)
+    return null;
+  return task;
+}
+async function createTask(db3, body) {
+  const createdTask = await db3.insert(tasks2).values(body).returning();
+  if (createdTask.length === 0) {
+    return new Error("Failed to create task");
+  }
+  return createdTask[0];
+}
+async function updateTask(db3, id, body) {
+  const updatedTask = await db3.update(tasks2).set(body).where(eq(tasks2.id, id)).returning();
+  if (updatedTask.length === 0)
+    throw new Error("Failed to update task or task not found");
+  return updatedTask[0];
+}
+async function deleteTask(db3, id) {
+  const deletedTask = await db3.delete(tasks2).where(eq(tasks2.id, id)).returning();
+  if (deletedTask.length === 0)
+    return false;
+  return true;
+}
+
+// src/handlers/tasks.handlers.ts
+var list = async (c) => {
+  try {
+    const db3 = c.get("db");
+    const queryParams = c.req.valid("query");
+    const queryResponse = await getAllTasks(db3, queryParams);
+    if (queryResponse instanceof Error) {
+      throw queryResponse;
+    }
+    return c.json(queryResponse, HttpStatusCodes2.OK);
+  } catch (error48) {
+    return c.json({
+      message: error48.message || HttpStatusPhrases2.INTERNAL_SERVER_ERROR
+    }, HttpStatusCodes2.INTERNAL_SERVER_ERROR);
+  }
+};
+var create = async (c) => {
+  try {
+    const db3 = c.get("db");
+    const session = c.get("session");
+    const body = c.req.valid("json");
+    if (!session) {
+      return c.json({ message: HttpStatusPhrases2.UNAUTHORIZED }, HttpStatusCodes2.UNAUTHORIZED);
+    }
+    const queryResponse = await createTask(db3, body);
+    if (queryResponse instanceof Error) {
+      throw queryResponse;
+    }
+    return c.json(queryResponse, HttpStatusCodes2.CREATED);
+  } catch (error48) {
+    return c.json({
+      message: error48.message || HttpStatusPhrases2.INTERNAL_SERVER_ERROR
+    }, HttpStatusCodes2.INTERNAL_SERVER_ERROR);
+  }
+};
+var getOne = async (c) => {
+  try {
+    const db3 = c.get("db");
+    const { id } = c.req.valid("param");
+    const queryResponse = await getTaskByID(db3, parseInt(id));
+    if (queryResponse instanceof Error) {
+      throw queryResponse;
+    }
+    if (!queryResponse) {
+      return c.json({ message: "Task not found !" }, HttpStatusCodes2.NOT_FOUND);
+    }
+    return c.json(queryResponse, HttpStatusCodes2.OK);
+  } catch (error48) {
+    return c.json({
+      message: error48.message || HttpStatusPhrases2.INTERNAL_SERVER_ERROR
+    }, HttpStatusCodes2.INTERNAL_SERVER_ERROR);
+  }
+};
+var patch = async (c) => {
+  try {
+    const db3 = c.get("db");
+    const session = c.get("session");
+    if (!session) {
+      return c.json({ message: HttpStatusPhrases2.UNAUTHORIZED }, HttpStatusCodes2.UNAUTHORIZED);
+    }
+    const body = c.req.valid("json");
+    const { id } = c.req.valid("param");
+    const queryResponse = await updateTask(db3, parseInt(id), body);
+    if (queryResponse instanceof Error) {
+      throw queryResponse;
+    }
+    if (!queryResponse) {
+      return c.json({ message: "Task not found !" }, HttpStatusCodes2.NOT_FOUND);
+    }
+    return c.json(queryResponse, HttpStatusCodes2.OK);
+  } catch (error48) {
+    return c.json({
+      message: error48.message || HttpStatusPhrases2.INTERNAL_SERVER_ERROR
+    }, HttpStatusCodes2.INTERNAL_SERVER_ERROR);
+  }
+};
+var remove = async (c) => {
+  try {
+    const db3 = c.get("db");
+    const session = c.get("session");
+    if (!session) {
+      return c.json({ message: HttpStatusPhrases2.UNAUTHORIZED }, HttpStatusCodes2.UNAUTHORIZED);
+    }
+    const { id } = c.req.valid("param");
+    const queryResponse = deleteTask(db3, parseInt(id));
+    if (queryResponse instanceof Error) {
+      throw queryResponse;
+    }
+    if (!queryResponse) {
+      return c.json({ message: "Task not found !" }, HttpStatusCodes2.NOT_FOUND);
+    }
+    return c.json(HttpStatusCodes2.NO_CONTENT);
+  } catch (error48) {
+    return c.json({
+      message: error48.message || HttpStatusPhrases2.INTERNAL_SERVER_ERROR
+    }, HttpStatusCodes2.INTERNAL_SERVER_ERROR);
+  }
+};
+
+// src/routes/tasks.route.ts
+import { createRoute as createRoute2, z } from "@hono/zod-openapi";
+import * as HttpStatusCodes3 from "stoker/http-status-codes";
+import { jsonContent as jsonContent2, jsonContentRequired } from "stoker/openapi/helpers";
+
+// ../../packages/core/dist/zod/index.js
+init_zod();
+init_zod();
+var errorMessageSchema2 = exports_external.object({
+  message: exports_external.string()
+});
+var stringIdParamSchema2 = exports_external.object({
+  id: exports_external.string()
+});
+var queryParamsSchema2 = exports_external.object({
+  page: exports_external.string().optional(),
+  limit: exports_external.string().optional(),
+  sort: exports_external.enum(["asc", "desc"]).optional().default("desc"),
+  search: exports_external.string().optional()
+});
+function getPaginatedSchema(data) {
+  return exports_external.object({
+    data,
+    meta: exports_external.object({
+      currentPage: exports_external.number(),
+      limit: exports_external.number(),
+      totalCount: exports_external.number(),
+      totalPages: exports_external.number()
+    })
+  });
+}
+var selectTaskSchema = exports_external.object({
+  id: exports_external.number(),
+  name: exports_external.string(),
+  done: exports_external.boolean(),
+  createdAt: exports_external.date(),
+  updatedAt: exports_external.date().nullable()
+});
+var insertTaskSchema = exports_external.object({
+  name: exports_external.string().min(1, "Task name is required").max(255, "Task name too long"),
+  done: exports_external.boolean().default(false)
+});
+var updateTaskSchema = exports_external.object({
+  name: exports_external.string().optional(),
+  done: exports_external.boolean().optional()
+}).partial().refine((data) => Object.keys(data).length > 0, {
+  message: "At least one field must be provided for update"
+});
+var getAllTasksResponseSchema = getPaginatedSchema(exports_external.array(selectTaskSchema));
+
+// src/routes/tasks.route.ts
+var tags = ["Tasks"];
+var list2 = createRoute2({
+  tags,
+  summary: "List all tasks",
+  path: "/",
+  method: "get",
+  request: {
+    query: queryParamsSchema2
+  },
+  responses: {
+    [HttpStatusCodes3.OK]: jsonContent2(getPaginatedSchema(z.array(selectTaskSchema)), "The list of tasks"),
+    [HttpStatusCodes3.INTERNAL_SERVER_ERROR]: jsonContent2(errorMessageSchema2, "Internal server error(s)")
+  }
+});
+var create2 = createRoute2({
+  tags,
+  summary: "Create a new task",
+  path: "/",
+  method: "post",
+  middleware: [authMiddleware],
+  request: {
+    body: jsonContentRequired(insertTaskSchema, "The task to create")
+  },
+  responses: {
+    [HttpStatusCodes3.CREATED]: jsonContent2(selectTaskSchema, "The created task"),
+    [HttpStatusCodes3.UNAUTHORIZED]: jsonContent2(errorMessageSchema2, "Unauthroized request"),
+    [HttpStatusCodes3.UNPROCESSABLE_ENTITY]: jsonContent2(errorMessageSchema2, "The validation error(s)"),
+    [HttpStatusCodes3.INTERNAL_SERVER_ERROR]: jsonContent2(errorMessageSchema2, "Internal server error(s)")
+  }
+});
+var getOne2 = createRoute2({
+  tags,
+  summary: "Get a single task",
+  method: "get",
+  path: "/{id}",
+  request: {
+    params: stringIdParamSchema2
+  },
+  responses: {
+    [HttpStatusCodes3.OK]: jsonContent2(selectTaskSchema, "Requested task"),
+    [HttpStatusCodes3.NOT_FOUND]: jsonContent2(errorMessageSchema2, "Task not found"),
+    [HttpStatusCodes3.UNPROCESSABLE_ENTITY]: jsonContent2(errorMessageSchema2, "Invalid ID format"),
+    [HttpStatusCodes3.INTERNAL_SERVER_ERROR]: jsonContent2(errorMessageSchema2, "Internal server error(s)")
+  }
+});
+var patch2 = createRoute2({
+  tags,
+  summary: "Update a task",
+  path: "/{id}",
+  method: "patch",
+  middleware: [authMiddleware],
+  request: {
+    params: stringIdParamSchema2,
+    body: jsonContentRequired(updateTaskSchema, "The task updates")
+  },
+  responses: {
+    [HttpStatusCodes3.OK]: jsonContent2(selectTaskSchema, "The updated task"),
+    [HttpStatusCodes3.UNAUTHORIZED]: jsonContent2(errorMessageSchema2, "Unauthroized request"),
+    [HttpStatusCodes3.NOT_FOUND]: jsonContent2(errorMessageSchema2, "Task not found"),
+    [HttpStatusCodes3.UNPROCESSABLE_ENTITY]: jsonContent2(errorMessageSchema2, "The validation error(s)"),
+    [HttpStatusCodes3.INTERNAL_SERVER_ERROR]: jsonContent2(errorMessageSchema2, "Internal server error(s)")
+  }
+});
+var remove2 = createRoute2({
+  tags,
+  summary: "Remove a task",
+  path: "/{id}",
+  method: "delete",
+  middleware: [authMiddleware],
+  request: {
+    params: stringIdParamSchema2
+  },
+  responses: {
+    [HttpStatusCodes3.NO_CONTENT]: {
+      description: "Task deleted"
+    },
+    [HttpStatusCodes3.UNAUTHORIZED]: jsonContent2(errorMessageSchema2, "Unauthroized request"),
+    [HttpStatusCodes3.NOT_FOUND]: jsonContent2(errorMessageSchema2, "Task not found"),
+    [HttpStatusCodes3.UNPROCESSABLE_ENTITY]: jsonContent2(errorMessageSchema2, "Invalid ID format"),
+    [HttpStatusCodes3.INTERNAL_SERVER_ERROR]: jsonContent2(errorMessageSchema2, "Internal server error(s)")
+  }
+});
+
+// src/registry/tasks.registry.ts
+var router3 = createAPIRouter().openapi(list2, list).openapi(create2, create).openapi(getOne2, getOne).openapi(patch2, patch).openapi(remove2, remove);
+var tasks_registry_default = router3;
+
 // src/registry/index.ts
 function registerRoutes(app) {
-  return app.route("/", index_route_default);
+  return app.route("/", index_route_default).route("/tasks", tasks_registry_default);
 }
-var router3 = registerRoutes(createAPIRouter().basePath(BASE_PATH));
+var router4 = registerRoutes(createAPIRouter().basePath(BASE_PATH));
 
 // src/lib/open-api-config.ts
 import { Scalar } from "@scalar/hono-api-reference";
@@ -53382,10 +53834,10 @@ function configureOpenAPI(app) {
 var app;
 var db3;
 try {
-  db3 = initDatabase(process.env.DATABASE_URL);
+  db3 = initDatabase(env3.DATABASE_URL);
   setupAuth({
     database: db3,
-    secret: process.env.BETTER_AUTH_SECRET
+    secret: env3.BETTER_AUTH_SECRET
   });
   app = registerRoutes(setupAPI());
   configureOpenAPI(app);
@@ -53405,4 +53857,4 @@ export {
   api_default as default
 };
 
-//# debugId=17910C6B7DE1A19F64756E2164756E21
+//# debugId=EDAC028E2C2C82C964756E2164756E21
