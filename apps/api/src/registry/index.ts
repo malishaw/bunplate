@@ -10,9 +10,7 @@ import tasks from "./tasks.registry";
 export function registerRoutes(app: OpenAPI) {
   const registeredApp = app.route("/", index).route("/tasks", tasks);
 
-  configureOpenAPI(registeredApp);
-
-  return registeredApp;
+  return configureOpenAPI(registeredApp);
 }
 
 // Standalone router instance and type export for RPC
