@@ -16,9 +16,9 @@ export default function configureOpenAPI(app: OpenAPI): void {
 
   app.get(
     "/reference",
-    Scalar({
+    Scalar(() => ({
       url: `${BASE_PATH}/doc`,
       theme: "default"
-    })
+    }))
   );
 }
