@@ -26,6 +26,10 @@ export default function configureOpenAPI(
           "Attempted path:",
           join(process.cwd(), "public", "openapi.json")
         );
+        console.error(
+          "Test path:",
+          join(process.cwd(), "dist", "public", "openapi.json")
+        );
         return c.json({ error: "OpenAPI spec not found" }, 500);
       }
     });
