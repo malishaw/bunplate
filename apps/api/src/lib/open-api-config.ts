@@ -15,7 +15,7 @@ export default function configureOpenAPI(
     app.get("/doc", async (c) => {
       try {
         // Use absolute path relative to the dist directory
-        const filePath = join(process.cwd(), "public", "openapi.json");
+        const filePath = join(process.cwd(), "dist", "public", "openapi.json");
         const file = Bun.file(filePath);
         const json = await file.json();
         return c.json(json);
