@@ -1,6 +1,6 @@
 import { Scalar } from "@scalar/hono-api-reference";
 
-import { APIBindings, OpenAPI } from "@/types";
+import { APIBindings } from "@/types";
 
 import packageJson from "../../package.json";
 import { BASE_PATH } from "./constants";
