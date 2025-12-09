@@ -3,8 +3,6 @@ import { cors } from "hono/cors";
 import { defaultHook } from "stoker/openapi";
 import { notFound, onError, serveEmojiFavicon } from "stoker/middlewares";
 
-import { serveStatic } from "hono/bun";
-
 import { getAuth } from "core/auth/setup";
 import { env } from "core/env";
 
@@ -12,7 +10,6 @@ import { APIBindings, OpenAPI } from "@/types";
 import { BASE_PATH } from "./constants";
 import { getDatabase } from "core/database";
 import { logger } from "hono/logger";
-import configureOpenAPI from "./open-api-config";
 
 // Create a new OpenAPIHono instance with API Bindings
 export function createAPIRouter(): OpenAPIHono<APIBindings> {
@@ -57,8 +54,6 @@ export function setupAPI(): OpenAPIHono<APIBindings> {
     const auth = getAuth();
     return auth.handler(c.req.raw);
   });
-
-  configureOpenAPI(api);
 
   // Error Handling Middleware
   api.onError(onError);

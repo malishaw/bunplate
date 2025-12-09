@@ -28,6 +28,8 @@ try {
   });
 
   app = registerRoutes(setupAPI());
+
+  configureOpenAPI(app);
 } catch (error) {
   console.error("Failed to initialize database/auth:", error);
 
