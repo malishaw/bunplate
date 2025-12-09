@@ -1,11 +1,10 @@
 import { Scalar } from "@scalar/hono-api-reference";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { serveStatic } from "hono/bun";
 
 import { APIBindings } from "@/types";
 
 import packageJson from "../../package.json";
-import { BASE_PATH } from "./constants";
+import { BASE_PATH, IS_PRODUCTION } from "./constants";
 
 export default function configureOpenAPI(
   app: OpenAPIHono<APIBindings>
@@ -21,7 +20,7 @@ export default function configureOpenAPI(
   app.get(
     "/reference",
     Scalar(() => ({
-      url: `${BASE_PATH}/doc`,
+      url: IS_PRODUCTION ? `/openapi.json` : `${BASE_PATH}/doc`,
       theme: "default"
     }))
   );
