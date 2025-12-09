@@ -29,6 +29,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
+# Generated files
+apps/api/src/generated-openapi-spec.ts
+
 # IntelliJ based IDEs
 .idea
 

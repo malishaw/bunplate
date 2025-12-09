@@ -88,12 +88,26 @@ async function build() {
       }
     });
 
+    // Write as JSON file
     await Bun.write(
       resolve(DIST, "public", "openapi.json"),
       JSON.stringify(specs, null, 2)
     );
 
+    // Also write as a TypeScript module that can be imported
+    const specModule = `// Auto-generated OpenAPI spec
+export const openAPISpec = ${JSON.stringify(specs, null, 2)} as const;
+`;
+
+    await Bun.write(
+      resolve(API_ROOT, "src", "generated-openapi-spec.ts"),
+      specModule
+    );
+
     console.log("✅ OpenAPI spec generated at public/openapi.json");
+    console.log(
+      "✅ OpenAPI spec module generated at src/generated-openapi-spec.ts"
+    );
 
     console.log("🎉 Build completed successfully!");
   } catch (error) {

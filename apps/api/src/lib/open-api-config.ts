@@ -1,37 +1,35 @@
 import { Scalar } from "@scalar/hono-api-reference";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { join } from "path";
 
 import { APIBindings } from "@/types";
 
 import packageJson from "../../package.json";
 import { BASE_PATH, IS_PRODUCTION } from "./constants";
 
+// Dynamically import the generated spec only in production
+let cachedOpenAPISpec: any = null;
+
+if (IS_PRODUCTION) {
+  try {
+    // Import the generated spec module
+    const { openAPISpec } = await import("../generated-openapi-spec");
+    cachedOpenAPISpec = openAPISpec;
+    console.log("✓ OpenAPI spec loaded from generated module");
+  } catch (error) {
+    console.error("⚠️ Failed to load generated OpenAPI spec:", error);
+  }
+}
+
 export default function configureOpenAPI(
   app: OpenAPIHono<APIBindings>
 ): OpenAPIHono<APIBindings> {
   if (IS_PRODUCTION) {
-    // In production, serve the pre-built openapi.json as static file
-    app.get("/doc", async (c) => {
-      try {
-        // Use absolute path relative to the dist directory
-        const filePath = join(process.cwd(), "dist", "public", "openapi.json");
-        const file = Bun.file(filePath);
-        const json = await file.json();
-        return c.json(json);
-      } catch (error) {
-        console.error("Failed to load openapi.json:", error);
-        console.error("Current working directory:", process.cwd());
-        console.error(
-          "Attempted path:",
-          join(process.cwd(), "public", "openapi.json")
-        );
-        console.error(
-          "Test path:",
-          join(process.cwd(), "dist", "public", "openapi.json")
-        );
-        return c.json({ error: "OpenAPI spec not found" }, 500);
+    // In production, serve the cached OpenAPI spec
+    app.get("/doc", (c) => {
+      if (cachedOpenAPISpec) {
+        return c.json(cachedOpenAPISpec);
       }
+      return c.json({ error: "OpenAPI spec not found" }, 500);
     });
   } else {
     // In development, generate OpenAPI spec dynamically

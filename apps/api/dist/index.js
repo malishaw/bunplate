@@ -53260,6 +53260,7 @@ import { notFound, onError, serveEmojiFavicon } from "stoker/middlewares";
 import * as HttpStatusPhrases from "stoker/http-status-phrases";
 import { createMessageObjectSchema } from "stoker/openapi/schemas";
 var BASE_PATH = "/api";
+var IS_PRODUCTION = process.env.VERCEL_ENV === "production";
 var notFoundSchema = createMessageObjectSchema(HttpStatusPhrases.NOT_FOUND);
 
 // src/lib/setup-api.ts
@@ -53284,6 +53285,7 @@ var package_default = {
     "build:vercel": "bun run builders/build-vercel.ts && bun run build:types"
   },
   dependencies: {
+    "@hono/node-server": "^1.19.7",
     "@hono/zod-openapi": "^1.1.5",
     "@scalar/hono-api-reference": "^0.9.26",
     core: "workspace:*",
@@ -53296,14 +53298,33 @@ var package_default = {
 };
 
 // src/lib/open-api-config.ts
+var cachedOpenAPISpec = null;
+if (IS_PRODUCTION) {
+  try {
+    const { openAPISpec } = await import("../generated-openapi-spec");
+    cachedOpenAPISpec = openAPISpec;
+    console.log("✓ OpenAPI spec loaded from generated module");
+  } catch (error48) {
+    console.error("⚠️ Failed to load generated OpenAPI spec:", error48);
+  }
+}
 function configureOpenAPI(app) {
-  app.doc("/doc", {
-    openapi: "3.0.0",
-    info: {
-      version: package_default.version,
-      title: "Bunplate (by CodeVille)"
-    }
-  });
+  if (IS_PRODUCTION) {
+    app.get("/doc", (c) => {
+      if (cachedOpenAPISpec) {
+        return c.json(cachedOpenAPISpec);
+      }
+      return c.json({ error: "OpenAPI spec not found" }, 500);
+    });
+  } else {
+    app.doc("/doc", {
+      openapi: "3.0.0",
+      info: {
+        version: package_default.version,
+        title: "Bunplate (by CodeVille)"
+      }
+    });
+  }
   app.get("/reference", Scalar(() => ({
     url: `${BASE_PATH}/doc`,
     theme: "default"
@@ -53859,4 +53880,4 @@ export {
   api_default as default
 };
 
-//# debugId=E6315788C234DCD864756E2164756E21
+//# debugId=BE1DCBD48327283564756E2164756E21
