@@ -1,8 +1,12 @@
+import { cookies } from "next/headers";
+
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
 
 type FetcherOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
+  /** Set to false to skip sending cookies (default: true) */
+  withCredentials?: boolean;
 };
 
 /**
@@ -31,14 +35,23 @@ export async function fetcher<T = unknown>(
   endpoint: string,
   options: FetcherOptions = {}
 ): Promise<T> {
-  const { body, headers, ...restOptions } = options;
+  const { body, headers, withCredentials = true, ...restOptions } = options;
 
   const url = `${BACKEND_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 
+  // Get cookies from Next.js headers for server-side requests
+  let cookieHeader: string | undefined;
+  if (withCredentials) {
+    const cookieStore = await cookies();
+    cookieHeader = cookieStore.toString();
+  }
+
   const response = await fetch(url, {
     ...restOptions,
+    credentials: withCredentials ? "include" : "omit",
     headers: {
       "Content-Type": "application/json",
+      ...(cookieHeader && { Cookie: cookieHeader }),
       ...headers
     },
     body: body ? JSON.stringify(body) : undefined

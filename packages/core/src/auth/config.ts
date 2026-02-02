@@ -13,6 +13,8 @@ export interface AuthConfigurations {
 
 export function configAuth(config: AuthConfigurations) {
   const baseAuthInstance = betterAuth({
+    trustedOrigins: ["http://localhost:3000"],
+
     database: drizzleAdapter(config.database, {
       provider: "pg",
       schema: authSchema,
