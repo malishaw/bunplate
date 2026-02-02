@@ -19,6 +19,7 @@
     "@scalar/hono-api-reference": "^0.9.26",
     "core": "workspace:*",
     "hono": "catalog:",
+    "better-auth": "catalog:",
     "stoker": "^2.0.1"
   },
   "devDependencies": {

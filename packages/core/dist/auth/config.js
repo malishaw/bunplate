@@ -95,6 +95,7 @@ var accountRelations = relations(accounts, ({ one }) => ({
 import { admin, openAPI } from "better-auth/plugins";
 function configAuth(config) {
   const baseAuthInstance = betterAuth({
+    trustedOrigins: ["http://localhost:3000"],
     database: drizzleAdapter(config.database, {
       provider: "pg",
       schema: exports_auth_schema,
@@ -112,4 +113,4 @@ export {
   configAuth
 };
 
-//# debugId=D3786DE50C6B449764756E2164756E21
+//# debugId=1089CD23A3189F8764756E2164756E21
