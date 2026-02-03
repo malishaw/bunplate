@@ -13,7 +13,11 @@ export interface AuthConfigurations {
 
 export function configAuth(config: AuthConfigurations) {
   const baseAuthInstance = betterAuth({
-    trustedOrigins: ["http://localhost:3000", "https://bunplate-web.vercel.app"],
+    baseURL: process.env.BETTER_AUTH_URL,
+    trustedOrigins: [
+      "http://localhost:3000",
+      "https://bunplate-web.vercel.app"
+    ],
 
     database: drizzleAdapter(config.database, {
       provider: "pg",
@@ -25,6 +29,12 @@ export function configAuth(config: AuthConfigurations) {
 
     emailAndPassword: {
       enabled: true
+    },
+
+    advanced: {
+      crossSubDomainCookies: {
+        enabled: true
+      }
     }
   });
 

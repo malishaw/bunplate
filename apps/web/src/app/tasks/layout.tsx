@@ -13,7 +13,9 @@ type Props = {
 
 export default async function TasksLayout({ children }: Props) {
   const { data: sessionData } = await authClient.getSession({
-    fetchOptions: { headers: await headers() }
+    fetchOptions: {
+      headers: await headers()
+    }
   });
 
   return (
