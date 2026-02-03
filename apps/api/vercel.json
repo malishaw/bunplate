@@ -3,5 +3,11 @@
   "buildCommand": "bun run build:vercel",
   "outputDirectory": "dist",
   "installCommand": "bun install && bun run --filter core build",
-  "bunVersion": "1.x"
+  "bunVersion": "1.x",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://bunplate-api.vercel.app/api/:path*"
+    }
+  ]
 }
