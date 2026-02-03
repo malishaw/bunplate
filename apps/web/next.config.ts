@@ -1,14 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "https://bunplate-api.vercel.app/api/:path*"
-      }
-    ];
-  }
+  // Cross-subdomain cookies are now handled by better-auth configuration
+  // No rewrites needed - the auth client calls the API directly
 };
 
 export default nextConfig;

@@ -30,10 +30,20 @@ export function setupAPI(): OpenAPIHono<APIBindings> {
   api.use(
     "*",
     cors({
-      origin: [env.CLIENT_URL!],
-      allowHeaders: ["Content-Type", "Authorization"],
+      origin: (origin) => {
+        const allowedOrigins = [
+          "http://localhost:3000",
+          "http://localhost:4000",
+          "https://bunplate-web.vercel.app",
+          "https://bunplate-api.vercel.app"
+        ];
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return env.CLIENT_URL!;
+        return allowedOrigins.includes(origin) ? origin : env.CLIENT_URL!;
+      },
+      allowHeaders: ["Content-Type", "Authorization", "Cookie"],
       allowMethods: ["POST", "GET", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      exposeHeaders: ["Content-Length"],
+      exposeHeaders: ["Content-Length", "Set-Cookie"],
       maxAge: 600,
       credentials: true
     })
