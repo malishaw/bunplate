@@ -17,9 +17,10 @@
     "@hono/node-server": "^1.19.7",
     "@hono/zod-openapi": "^1.1.5",
     "@scalar/hono-api-reference": "^0.9.26",
-    "core": "workspace:*",
-    "hono": "catalog:",
     "better-auth": "catalog:",
+    "core": "workspace:*",
+    "dotenv": "^17.3.1",
+    "hono": "catalog:",
     "stoker": "^2.0.1"
   },
   "devDependencies": {

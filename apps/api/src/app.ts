@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 let app: OpenAPIHono<APIBindings>;
 
 // Import at module-level for faster cold starts
